@@ -1,5 +1,5 @@
 $AccountName = "Bg_4n3f"
-$PlainPassword = "%TEMPPASS%"
+$PlainPassword = "$env:TEMPPASS"
 $securePwd = ConvertTo-SecureString -String $PlainPassword -AsPlainText -Force
 
 # Crée le compte (échoue si existe déjà)
