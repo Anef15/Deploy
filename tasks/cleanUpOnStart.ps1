@@ -5,15 +5,20 @@
 
 $taskName = "CleanupOnStartup"
 
-# Commande qui exécute les suppressions et l'auto-suppression
+# Commande à exécuter
 $command = @"
 Remove-Item -Path 'C:\IT\Deploy-Main' -Recurse -Force -ErrorAction SilentlyContinue;
 [Environment]::SetEnvironmentVariable('TEMPPASS', `$null, 'Machine') -ErrorAction SilentlyContinue;
+Start-Sleep -Seconds 2;
 Unregister-ScheduledTask -TaskName 'CleanupOnStartup' -Confirm:`$false -ErrorAction SilentlyContinue
 "@
 
+# Encoder la commande en Base64
+$encodedCommand = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($command))
+
+# Configuration de la tâche
 $trigger = New-ScheduledTaskTrigger -AtStartup
-$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -Command $command"
+$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -EncodedCommand $encodedCommand"
 $principal = New-ScheduledTaskPrincipal -UserId "NT AUTHORITY\SYSTEM" -RunLevel Highest
 
 $settings = New-ScheduledTaskSettingsSet `
