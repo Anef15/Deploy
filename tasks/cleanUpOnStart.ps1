@@ -1,36 +1,67 @@
 #######################################################################################
-# Tâche permettant la suppression du dossier Deploy-Main et de la variable TEMPPASS  #
-# au démarrage, puis s'auto-supprime.                                                 #
+# Suppression du dossier Deploy-Main et de la variable TEMPPASS au démarrage,
+# puis auto-suppression de la tâche planifiée
 #######################################################################################
 
 $taskName = "CleanupOnStartup"
 
-# Commande à exécuter (construction claire)
+# Commande exécutée par la tâche planifiée
 $command = @'
-Remove-Item -Path 'C:\IT\Deploy-Main' -Recurse -Force -ErrorAction SilentlyContinue
-[Environment]::SetEnvironmentVariable('TEMPPASS', $null, 'Machine') -ErrorAction SilentlyContinue
+try {
+    Remove-Item -Path 'C:\IT\Deploy-Main' `
+        -Recurse `
+        -Force `
+        -ErrorAction SilentlyContinue
+}
+catch {
+    # Ignorer les erreurs de suppression du dossier
+}
+
+try {
+    [Environment]::SetEnvironmentVariable(
+        'TEMPPASS',
+        $null,
+        [EnvironmentVariableTarget]::Machine
+    )
+}
+catch {
+    # Ignorer les erreurs de suppression de la variable
+}
+
 Start-Sleep -Seconds 2
-Unregister-ScheduledTask -TaskName 'CleanupOnStartup' -Confirm:$false -ErrorAction SilentlyContinue
+
+Unregister-ScheduledTask `
+    -TaskName 'CleanupOnStartup' `
+    -Confirm:$false `
+    -ErrorAction SilentlyContinue
 '@
 
-# Encoder la commande en Base64
-$encodedCommand = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($command))
+# Encodage UTF-16LE requis par -EncodedCommand
+$encodedCommand = [Convert]::ToBase64String(
+    [System.Text.Encoding]::Unicode.GetBytes($command)
+)
 
-# Configuration de la tâche
 $trigger = New-ScheduledTaskTrigger -AtStartup
-$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -EncodedCommand $encodedCommand"
-$principal = New-ScheduledTaskPrincipal -UserId "NT AUTHORITY\SYSTEM" -RunLevel Highest
+
+$action = New-ScheduledTaskAction `
+    -Execute "powershell.exe" `
+    -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand $encodedCommand"
+
+$principal = New-ScheduledTaskPrincipal `
+    -UserId "NT AUTHORITY\SYSTEM" `
+    -LogonType ServiceAccount `
+    -RunLevel Highest
 
 $settings = New-ScheduledTaskSettingsSet `
     -AllowStartIfOnBatteries `
     -DontStopIfGoingOnBatteries `
     -StartWhenAvailable
 
-Register-ScheduledTask -TaskName $taskName `
+Register-ScheduledTask `
+    -TaskName $taskName `
     -Trigger $trigger `
     -Action $action `
     -Principal $principal `
     -Settings $settings `
-    -Force | Out-Null
-
-Write-Host "Tâche '$taskName' créée avec succès." -ForegroundColor Green
+    -Force |
+    Out-Null
