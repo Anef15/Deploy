@@ -2,6 +2,8 @@
 # Synchronisation dossier IT #
 ##############################
 
+Start-Sleep -Seconds 60
+
 # ===== CONFIGURATION =====
 $DossierLocal = "C:\IT\Sync"
 $User = "Anef15"
