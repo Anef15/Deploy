@@ -33,7 +33,7 @@ $scriptPath = "C:\IT\Sync\start.ps1"
 # Commande qui exécute le script PS1
 $command = "-ExecutionPolicy Bypass -Command `"& '$scriptPath'`""
 
-$trigger = New-ScheduledTaskTrigger -AtStartup -Delay (New-TimeSpan -Minutes 3)
+$trigger = New-ScheduledTaskTrigger -AtStartup
 $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $command
 $principal = New-ScheduledTaskPrincipal -UserId "NT AUTHORITY\SYSTEM" -RunLevel Highest
 
