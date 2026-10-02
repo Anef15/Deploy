@@ -4,7 +4,7 @@
 # 2 = tache lance start.ps1 depuis le dossier sync. Ce script permet d'intervenir à distance sur l'ensemble des posts.
 ######################################################################################################################
 $taskName = "ITSync"
-$scriptPath = "C:\IT\Scripts\IT_Sync.ps1"
+$scriptPath = "C:\IT\Sync\Scripts\IT_Sync.ps1"
 
 # Commande qui exécute le script PS1
 $command = "-ExecutionPolicy Bypass -Command `"& '$scriptPath'`""
