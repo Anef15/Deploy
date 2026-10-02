@@ -1,17 +1,17 @@
-###########################################################################################
-# Tache permettant la suppression du dossier Deploy-Main et de la variable TEMPPASS     #
-# au démarrage, puis s'auto-supprime.                                                    #
-###########################################################################################
+#######################################################################################
+# Tâche permettant la suppression du dossier Deploy-Main et de la variable TEMPPASS  #
+# au démarrage, puis s'auto-supprime.                                                 #
+#######################################################################################
 
 $taskName = "CleanupOnStartup"
 
-# Commande à exécuter
-$command = @"
-Remove-Item -Path 'C:\IT\Deploy-Main' -Recurse -Force -ErrorAction SilentlyContinue;
-[Environment]::SetEnvironmentVariable('TEMPPASS', `$null, 'Machine') -ErrorAction SilentlyContinue;
-Start-Sleep -Seconds 2;
-Unregister-ScheduledTask -TaskName 'CleanupOnStartup' -Confirm:`$false -ErrorAction SilentlyContinue
-"@
+# Commande à exécuter (construction claire)
+$command = @'
+Remove-Item -Path 'C:\IT\Deploy-Main' -Recurse -Force -ErrorAction SilentlyContinue
+[Environment]::SetEnvironmentVariable('TEMPPASS', $null, 'Machine') -ErrorAction SilentlyContinue
+Start-Sleep -Seconds 2
+Unregister-ScheduledTask -TaskName 'CleanupOnStartup' -Confirm:$false -ErrorAction SilentlyContinue
+'@
 
 # Encoder la commande en Base64
 $encodedCommand = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($command))
@@ -32,3 +32,5 @@ Register-ScheduledTask -TaskName $taskName `
     -Principal $principal `
     -Settings $settings `
     -Force | Out-Null
+
+Write-Host "Tâche '$taskName' créée avec succès." -ForegroundColor Green
